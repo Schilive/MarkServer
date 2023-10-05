@@ -15,7 +15,7 @@ following.
 marserver> cmake -S src/ -B build/
 ```
 
-As a C program, it uses the ISO C library. Since MarkServer needs networking,
+As a C program, it uses the ISO C99 library. Since MarkServer needs networking,
 the POSIX API is used for POSIX systems and Win32 for Windows systems. The 
 minimum Windows version supported should be Windows 2000, which was the first
 Windows version using the NT kernel that targeted the general user.
