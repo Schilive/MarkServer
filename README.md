@@ -6,6 +6,8 @@ name **MarkServer** is an honour/curse to
 
 # What is it?
 
+A simple command-line interface.
+
 # Dependencies
 
 It uses rudimental CMake to build, on the folder `src/`. You can use the 
