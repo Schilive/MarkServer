@@ -20,8 +20,8 @@
 struct http_request_line {
     char method[HTTP_METHOD_MAX_LENGTH + 1];
     char uri[HTTP_URI_MAX_LENGTH];
-    unsigned int major_version;
-    unsigned int minor_version;
+    unsigned long major_version;
+    unsigned long minor_version;
 };
 
 /* Parses the Request-Line in a string, checking the logic.

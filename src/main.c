@@ -114,6 +114,22 @@ static int handle_options(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+        struct http_request_line httpReqLine;
+        enum error err = parse_http_request_line("req.txt", &httpReqLine);
+
+        if (err) {
+                fprintf(stderr, "Could not parse: %d\n", err);
+                return 1;
+        }
+
+        printf("========== START ==========\n");
+        printf("Method: '%s'\n", httpReqLine.method);
+        printf("URI: '%s'\n", httpReqLine.uri);
+        printf("Version: %lu.%lu\n", httpReqLine.major_version, httpReqLine.minor_version);
+        printf("=========== END ===========\n");
+
+        return 0;
+
         printf(HAIL_MESSAGE "\n");
         return handle_options(argc, argv);
 }
