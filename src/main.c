@@ -1,17 +1,19 @@
 /* This file is of the project MarkServer, which is under the MIT licence. For
  * more information, github.com/Schilive/MarkServer.
  *
- * This file was created originally in 2023/09/05.
+ * This file was originally created in 2023/10/04.
  */
 
-/*
- * This file contains the main function of MarkServer. Currently, it only
+/* This file contains the main function of MarkServer. Currently, it only
  * handles two options: "--version", and "--help" with aliases.
  */
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#include "httpParse.h"
+#include "error.h"
 
 #ifdef __linux__
 #define TARGET_SYSTEM "Linux"
@@ -112,6 +114,22 @@ static int handle_options(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+        struct http_request_line httpReqLine;
+        enum error err = parse_http_request_line("req.txt", &httpReqLine);
+
+        if (err) {
+                fprintf(stderr, "Could not parse: %d\n", err);
+                return 1;
+        }
+
+        printf("========== START ==========\n");
+        printf("Method: '%s'\n", httpReqLine.method);
+        printf("URI: '%s'\n", httpReqLine.uri);
+        printf("Version: %lu.%lu\n", httpReqLine.major_version, httpReqLine.minor_version);
+        printf("=========== END ===========\n");
+
+        return 0;
+
         printf(HAIL_MESSAGE "\n");
         return handle_options(argc, argv);
 }
