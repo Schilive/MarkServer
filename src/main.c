@@ -1,17 +1,19 @@
 /* This file is of the project MarkServer, which is under the MIT licence. For
  * more information, github.com/Schilive/MarkServer.
  *
- * This file was created originally in 2023/09/05.
+ * This file was originally created in 2023/10/04.
  */
 
-/*
- * This file contains the main function of MarkServer. Currently, it only
+/* This file contains the main function of MarkServer. Currently, it only
  * handles two options: "--version", and "--help" with aliases.
  */
 
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+
+#include "httpParse.h"
+#include "error.h"
 
 #ifdef __linux__
 #define TARGET_SYSTEM "Linux"
