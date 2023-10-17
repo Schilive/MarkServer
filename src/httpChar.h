@@ -12,19 +12,14 @@
 #define MARKSERVER_HTTPCHAR_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
-/* Returns whether a character is a token character.
+/* Returns whether an array is an HTTP 'Method'.
  *
- * @param  ch   Character to be checked.
- * @return      Whether the character is a token character.
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'Method'.
  */
-bool is_http_token_char(char ch);
-
-/* Returns whether a character is a DIGIT.
- *
- * @param  ch   Character to be checked.
- * @return      Whether the character is a DIGIT.
- */
-bool is_http_DIGIT(char ch);
+bool is_http_method(const char *arr, size_t arrLen);
 
 #endif /* MARKSERVER_HTTPCHAR_H */

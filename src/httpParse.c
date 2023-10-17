@@ -102,14 +102,7 @@ static enum error tokenize_request_line_str(const char *restrict reqLine,
 /* Returns whether the method format is correct. */
 static bool method_is_valid(const char *str)
 {
-        while (*str) {
-                if (!is_http_token_char(*str))
-                        return false;
-
-                str++;
-        }
-
-        return true;
+        return is_http_method(str, strlen(str));
 }
 
 /* Returns whether the URI format is correct. */
@@ -203,7 +196,6 @@ enum error parse_http_request_line(const char *restrict fNameReq,
                 return err;
 
         err = parse_request_line_tokens(&reqLineToks, pReqLine);
-
         if (err)
                 return err;
 

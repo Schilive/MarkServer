@@ -19,23 +19,45 @@ static bool is_CTL(char ch)
         return (ch >= 0 && ch <= 31) || ch == 127;
 }
 
-static bool is_tspecial(char ch)
+static bool is_tspecials(char ch)
 {
-        return  ch == '(' || ch == ')' || ch == '<' || ch == '>'  || ch == '@'
+        return  ch == '(' || ch == ')' || ch == '<' || ch == '>' || ch == '@'
         ||      ch == ',' || ch == ';' || ch == ':' || ch == '\\' || ch == '\"'
-        ||      ch == '/' || ch == '[' || ch == ']' || ch == '?'  || ch == '='
+        ||      ch == '/' || ch == '[' || ch == ']' || ch == '?' || ch == '='
         ||      ch == '{' || ch == '}' || ch == ' ' || ch == '\t';
 }
 
-bool is_http_token_char(char ch)
+/* Checks whether an array starts with 'token'.
+ *
+ * @param [in]          arr     The array to be checked.
+ * @param               arrLen  The length of the array.
+ * @param [out, opt]    pLen    The length of the 'token', if any.
+ * @return                      Whether the array starts with 'token'.
+ */
+static bool starts_with_token(const char *restrict arr, size_t arrLen,
+                                                        size_t *restrict pLen)
 {
-        return is_CHAR(ch) && !is_CTL(ch) && !is_tspecial(ch);
+        size_t len;
+        for (len = 0; len < arrLen; len++) {
+                if (    !is_CHAR(arr[len]) || is_CTL(arr[len])
+                ||      is_tspecials(arr[len])) {
+                        break;
+                }
+        }
+
+        if (arrLen == 0)
+                return false;
+
+        if (pLen)
+                *pLen = len;
+        return true;
 }
 
-bool is_http_DIGIT(char ch)
+bool is_http_method(const char *arr, size_t arrLen)
 {
-        return  ch == '0' || ch == '1' || ch == '2'
-        ||      ch == '3' || ch == '4' || ch == '5'
-        ||      ch == '6' || ch == '7' || ch == '8'
-        ||      ch == '9';
+        size_t tokenLen;
+        if (!starts_with_token(arr, arrLen, &tokenLen))
+                return false;
+
+        return tokenLen == arrLen;
 }
