@@ -121,7 +121,8 @@ static bool starts_with_escape(const char *restrict arr, size_t arrLen,
         if (arr[0] != '%' || !is_HEX(arr[1]) || !is_HEX(arr[2]))
                 return false;
 
-        *pLen = 3;
+        if (pLen)
+                *pLen = 3;
         return true;
 }
 
@@ -139,7 +140,8 @@ static bool starts_with_uchar(const char *restrict arr, size_t arrLen,
 
         size_t len;
         if (starts_with_escape(arr, arrLen, &len)) {
-                *pLen = len;
+                if (pLen)
+                        *pLen = len;
                 return true;
         }
 
@@ -148,7 +150,8 @@ static bool starts_with_uchar(const char *restrict arr, size_t arrLen,
         if (!is_unreserved(arr[0]))
                 return false;
 
-        *pLen = 1;
+        if (pLen)
+                *pLen = 1;
         return true;
 }
 
@@ -185,7 +188,8 @@ static bool starts_with_pchar(const char *restrict arr, size_t arrLen,
                 offset += len;
         }
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
@@ -208,7 +212,8 @@ static bool starts_with_fsegment(const char *restrict arr, size_t arrLen,
         if (len == 0)
                 return false;
 
-        *pLen = len;
+        if (pLen)
+                *pLen = len;
         return true;
 }
 
@@ -226,11 +231,13 @@ static bool starts_with_segment(const char *restrict arr, size_t arrLen,
 
         size_t len;
         if (!starts_with_pchar(arr, arrLen, &len)) {
-                *pLen = 0;
+                if (pLen)
+                        *pLen = 0;
                 return true;
         }
 
-        *pLen = len;
+        if (pLen)
+                *pLen = len;
         return true;
 }
 
@@ -269,7 +276,8 @@ static bool starts_with_path(const char *restrict arr, size_t arrLen,
                 len = offset;
         }
 
-        *pLen = len;
+        if (pLen)
+                *pLen = len;
         return true;
 }
 
@@ -301,7 +309,8 @@ static bool starts_with_param(const char *restrict arr, size_t arrLen,
                 offset += len;
         }
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
@@ -340,7 +349,8 @@ static bool starts_with_params(const char *restrict arr, size_t arrLen,
                 len = offset;
         }
 
-        *pLen = len;
+        if (pLen)
+                *pLen = len;
         return true;
 }
 
@@ -373,7 +383,8 @@ static bool starts_with_query(const char *restrict arr, size_t arrLen,
                 offset += len;
         }
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
@@ -394,7 +405,8 @@ static bool starts_with_relPath(const char *restrict arr, size_t arrLen,
         starts_with_path(arr, arrLen, &offset);
 
         if (offset == arrLen) {
-                *pLen = offset;
+                if (pLen)
+                        *pLen = offset;
                 return true;
         } if (arr[offset] == ';') {
                 offset++;
@@ -405,10 +417,12 @@ static bool starts_with_relPath(const char *restrict arr, size_t arrLen,
         }
 
         if (offset == arrLen) {
-                *pLen = offset;
+                if (pLen)
+                        *pLen = offset;
                 return true;
         } if (arr[offset] !=  '?') {
-                *pLen = offset;
+                if (pLen)
+                        *pLen = offset;
                 return true;
         }
         offset++;
@@ -417,7 +431,8 @@ static bool starts_with_relPath(const char *restrict arr, size_t arrLen,
                 return false;
         offset += len;
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
@@ -442,7 +457,8 @@ static bool starts_with_absPath(const char *restrict arr, size_t arrLen,
         if (!starts_with_relPath(arr + 1, arrLen - 1, &relPathLen))
                 return false;
 
-        *pLen = relPathLen + 1;
+        if (pLen)
+                *pLen = relPathLen + 1;
         return true;
 }
 
@@ -475,7 +491,8 @@ static bool starts_with_scheme(const char *restrict arr, size_t arrLen,
         if (offset == 0)
                 return false;
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
@@ -519,7 +536,8 @@ static bool starts_with_absoluteURI(const char *restrict arr, size_t arrLen,
                 offset += ucharLen;
         }
 
-        *pLen = offset;
+        if (pLen)
+                *pLen = offset;
         return true;
 }
 
