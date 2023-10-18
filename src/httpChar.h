@@ -22,4 +22,12 @@
  */
 bool is_http_method(const char *arr, size_t arrLen);
 
+/* Returns whether an array is an HTTP 'Request-URI'.
+ *
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'Request-URI'.
+ */
+bool is_http_requestURI(const char *arr, size_t arrLen);
+
 #endif /* MARKSERVER_HTTPCHAR_H */

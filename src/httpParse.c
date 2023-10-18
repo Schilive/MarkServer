@@ -108,7 +108,7 @@ static bool method_is_valid(const char *str)
 /* Returns whether the URI format is correct. */
 static bool uri_is_valid(const char *str)
 {
-        return true;
+        return is_http_requestURI(str, strlen(str));
 }
 
 /* Parses the HTTP version string, verifying that its format is correct.
