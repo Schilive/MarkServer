@@ -151,7 +151,10 @@ static enum error parse_http_version(const char *vers,
         return ERROR_SUCCESS;
 }
 
-/* Parse tokens into the struct 'request_line' */
+/* Parse tokens into the struct 'request_line'
+ *
+ * @except ERROR_BAD_REQUEST
+ */
 static enum error parse_request_line_tokens(
         const struct request_line_tokens *restrict pReqLineToks,
         struct http_request_line *restrict pReqLine)
