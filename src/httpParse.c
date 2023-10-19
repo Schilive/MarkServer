@@ -175,13 +175,13 @@ static enum error parse_request_line_tokens(
         return ERROR_SUCCESS;
 }
 
-enum error parse_http_request_line(const char *restrict fNameReq,
-        struct http_request_line *restrict pReqLine)
+enum error parse_http_request_line(const char *restrict fName,
+        struct http_request_line *restrict pRes)
 {
-        if (!fNameReq || !pReqLine)
+        if (!fName || !pRes)
                 return ERROR_INVALID_PARAMETER;
 
-        FILE *f = fopen(fNameReq, "rb");
+        FILE *f = fopen(fName, "rb");
         if (!f)
                 return ERROR_INVALID_PARAMETER;
 
@@ -195,7 +195,7 @@ enum error parse_http_request_line(const char *restrict fNameReq,
         if (err)
                 return err;
 
-        err = parse_request_line_tokens(&reqLineToks, pReqLine);
+        err = parse_request_line_tokens(&reqLineToks, pRes);
         if (err)
                 return err;
 

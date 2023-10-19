@@ -26,14 +26,14 @@ struct http_request_line {
 
 /* Parses the Request-Line in a string, checking the logic.
  *
- * @param [in]  fNameReq        The filename of the file starting with the
+ * @param [in]  fName        The filename of the file starting with the
  *                              Request-Line.
- * @param [out] pReqLine        The parsed Request-Line. Only changed if no
+ * @param [out] pRes        The parsed Request-Line. Only changed if no
  *                              error is returned.
  * @return                      The error value.
  * @except                      ERROR_INVALID_PARAMETER.
  */
-enum error parse_http_request_line(     const char *restrict fNameReq,
-        struct http_request_line *restrict pReqLine);
+enum error parse_http_request_line(     const char *restrict fName,
+        struct http_request_line *restrict pRes);
 
 #endif /* MARKSERVER_HTTPPARSE_H */
