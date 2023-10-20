@@ -7,6 +7,10 @@
 /* This file implements the declarations on "httpChar.h".
  */
 
+/* Some functions contain a comment informing the structure of an object, as
+ * "token = 1*<any CHAR except CTLs or tspecials>". They use the BNF
+ * (Backus-Naur Normal Form) notation. */
+
 #include "httpChar.h"
 
 static bool is_CHAR(char ch)
@@ -551,6 +555,8 @@ static bool starts_with_absoluteURI(const char *restrict arr, size_t arrLen,
 static bool starts_with_token(const char *restrict arr, size_t arrLen,
                                                         size_t *restrict pLen)
 {
+        /* token = 1*<any CHAR except CTLs or tspecials> */
+
         size_t len;
         for (len = 0; len < arrLen; len++) {
                 if (    !is_CHAR(arr[len]) || is_CTL(arr[len])
@@ -569,6 +575,8 @@ static bool starts_with_token(const char *restrict arr, size_t arrLen,
 
 bool is_http_method(const char *arr, size_t arrLen)
 {
+        /* Method = token */
+
         size_t tokenLen;
         if (!starts_with_token(arr, arrLen, &tokenLen))
                 return false;

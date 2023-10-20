@@ -16,12 +16,16 @@
 #define HTTP_METHOD_MAX_LENGTH 255
 #define HTTP_URI_MAX_LENGTH 1023
 
+struct http_version {
+    unsigned int major;
+    unsigned int minor;
+};
+
 /* The parsed Request-Line. */
 struct http_request_line {
     char method[HTTP_METHOD_MAX_LENGTH + 1];
-    char uri[HTTP_URI_MAX_LENGTH];
-    unsigned long major_version;
-    unsigned long minor_version;
+    char uri[HTTP_URI_MAX_LENGTH + 1];
+    struct http_version http_version;
 };
 
 /* Parses the Request-Line in a string, checking the logic.

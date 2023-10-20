@@ -10,11 +10,11 @@
 enum error {
     ERROR_SUCCESS,
     ERROR_REQUEST_INCOMPLETE,
-    ERROR_INVALID_PARAMETER,    /* Request is malformed by the standard. */
+    ERROR_INVALID_PARAMETER,
     ERROR_REQUEST_TOO_LONG,     /* Something of the HTTP request was considered
                                  * too long. */
     ERROR_INTERNAL,
-    ERROR_BAD_REQUEST
+    ERROR_BAD_REQUEST           /* Request is malformed by the standard. */
 };
 
 #endif /* MARKSERVER_ERROR_H */
