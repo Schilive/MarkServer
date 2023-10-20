@@ -14,6 +14,7 @@
 #include "httpChar.h"
 #include <stdlib.h>
 #include <limits.h>
+#include <errno.h>
 
 #define HTTP_VERSION_TOKEN_MAX_LENGTH 63
 #define HTTP_REQUEST_LINE_MAX_LENGTH (HTTP_METHOD_MAX_LENGTH + 1 + \
