@@ -13,9 +13,6 @@
 #include <stdio.h>
 #include "error.h"
 
-#define HTTP_METHOD_MAX_LENGTH 255
-#define HTTP_URI_MAX_LENGTH 1023
-
 struct http_version {
     unsigned int major;
     unsigned int minor;
@@ -23,8 +20,8 @@ struct http_version {
 
 /* The parsed Request-Line. */
 struct http_request_line {
-    char method[HTTP_METHOD_MAX_LENGTH + 1];
-    char uri[HTTP_URI_MAX_LENGTH + 1];
+    char *method;
+    char *uri;
     struct http_version http_version;
 };
 
@@ -41,7 +38,15 @@ struct http_request_line {
  * @except              ERROR_REQUEST_TOO_LONG
  * @except              ERROR_BAD_REQUEST
  */
-enum error parse_http_request_line(     const char *restrict fName,
+enum error parse_http_request_line(const char *restrict fName,
         struct http_request_line *restrict pRes);
+
+/* Deallocates the struct 'http_request_line()'.
+ *
+ * @param [in]  pReqLine The struct to be deallocated.
+ * @return      The error is returned.
+ * @except      ERROR_INVALID_PARAMETER.
+ */
+enum error destroy_http_request_line(struct http_request_line *pReqLine);
 
 #endif /* MARKSERVER_HTTPPARSE_H */

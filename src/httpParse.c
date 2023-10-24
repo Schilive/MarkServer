@@ -16,15 +16,7 @@
 #include <limits.h>
 #include <errno.h>
 
-#define HTTP_VERSION_TOKEN_MAX_LENGTH 63
-#define HTTP_REQUEST_LINE_MAX_LENGTH (HTTP_METHOD_MAX_LENGTH + 1 + \
-        HTTP_URI_MAX_LENGTH + 1 + HTTP_VERSION_TOKEN_MAX_LENGTH)
-
-struct request_line_tokens {
-    char method[HTTP_METHOD_MAX_LENGTH + 1];
-    char uri[HTTP_URI_MAX_LENGTH + 1];
-    char version[HTTP_VERSION_TOKEN_MAX_LENGTH + 1];
-};
+#define HTTP_REQUEST_LINE_MAX_LENGTH 2047
 
 /* Returns the next character to be read, without changing the file pointer. */
 static int seek_file(FILE *f)
@@ -37,70 +29,47 @@ static int seek_file(FILE *f)
         return ch;
 }
 
-/* Buffers the Request-Line of the start of the file, as a string, whether
+/* Reads the Request-Line of the start of the file, into a string, whether
  * the content of the fields are correct or not. That is, until CRLF.
  *
- * @param       f       The file to be read.
- * @param       reqLine The buffer.
- * @param       maxLen  The maximum length of the buffer. If the buffer is too
- *                      small, then ERROR_REQUEST_TOO_LONG is returned.
- * @except              ERROR_REQUEST_INCOMPLETE
- * @except              ERROR_INTERNAL
- * @except              ERROR_REQUEST_TOO_LONG
+ * @param               f       The file to be read.
+ * @param  [out]        pRes    The allocated string.
+ * @except                      ERROR_REQUEST_INCOMPLETE
+ * @except                      ERROR_INTERNAL
+ * @except                      ERROR_REQUEST_TOO_LONG
  */
-static enum error read_request_line(FILE *restrict f, char *restrict reqLine)
+static enum error read_request_line(FILE *restrict f, char **restrict pRes)
 {
-        char reqLineTxt[HTTP_REQUEST_LINE_MAX_LENGTH];
-        size_t reqLineLen = 0;
+        size_t reqLnLen = 0;
+        char *reqLn = malloc(reqLnLen + 1);
+        if (reqLn == NULL)
+                return ERROR_INTERNAL;
 
         while (1) {
                 int ch = fgetc(f);
 
-                if (ch == EOF)
-                        return  ferror(f)
-                                ? ERROR_REQUEST_INCOMPLETE
-                                : ERROR_INTERNAL;
-                if (reqLineLen == HTTP_REQUEST_LINE_MAX_LENGTH)
+                if (ch == EOF) {
+                        free(reqLn);
+                        return ferror(f)
+                               ? ERROR_REQUEST_INCOMPLETE
+                               : ERROR_INTERNAL;
+                } if (reqLnLen == HTTP_REQUEST_LINE_MAX_LENGTH) {
+                        free(reqLn);
                         return ERROR_REQUEST_TOO_LONG;
-                if (ch == '\r' && seek_file(f) == '\n')
+                } if (ch == '\r' && seek_file(f) == '\n')
                         break;
 
-                reqLineTxt[reqLineLen] = (char)ch;
-                reqLineLen++;
+                char *tmp = realloc(reqLn, reqLnLen + 2);
+                if (tmp == NULL)
+                        return ERROR_INTERNAL;
+                reqLn = tmp;
+
+                reqLn[reqLnLen] = (char)ch;
+                reqLnLen++;
         }
+        reqLn[reqLnLen] = 0;
 
-        memcpy(reqLine, reqLineTxt, reqLineLen);
-        reqLine[reqLineLen] = 0;
-
-        return ERROR_SUCCESS;
-}
-
-/* Tokenizes the Request-Line string.
- *
- * @except ERROR_BAD_REQUEST
- */
-static enum error tokenize_request_line_str(const char *restrict reqLine,
-        struct request_line_tokens *restrict pRes)
-{
-        char *sp1 = strchr(reqLine, ' ');
-        if (!sp1)
-                return ERROR_BAD_REQUEST;
-        char *sp2 = strchr(sp1 + 1, ' ');
-        if (!sp2)
-                return ERROR_BAD_REQUEST;
-
-        size_t methodLen = sp1 - reqLine;
-        size_t uriLen = sp2 - (sp1 + 1);
-        size_t versLen = strlen(sp2 + 1);
-
-        memcpy(pRes->method, reqLine, methodLen);
-        memcpy(pRes->uri, sp1 + 1, uriLen);
-        memcpy(pRes->version, sp2 + 1, versLen);
-
-        pRes->method[methodLen] = 0;
-        pRes->uri[uriLen] = 0;
-        pRes->version[versLen] = 0;
-
+        *pRes = reqLn;
         return ERROR_SUCCESS;
 }
 
@@ -122,17 +91,17 @@ static bool is_valid_uri(const char *str)
  * @except ERROR_BAD_REQUEST
  */
 static enum error parse_http_version(const char *restrict vers,
-                          unsigned long *restrict pMajor,
-                          unsigned long *restrict pMinor)
+                                     unsigned int *restrict pMajor,
+                                     unsigned int *restrict pMinor)
 {
-        char prefix[] = "HTTP/";
-        size_t prefixLen = sizeof(prefix) - 1;
+        const char prefix[] = "HTTP/";
+        const size_t prefixLen = sizeof(prefix) - 1;
 
         if (strncmp(vers, prefix, 5) != 0)
                 return ERROR_BAD_REQUEST;
 
         char *pPeriod = strchr(vers, '.');
-        if (!pPeriod)
+        if (pPeriod == NULL)
                 return ERROR_BAD_REQUEST;
 
         char *next;
@@ -159,27 +128,35 @@ static enum error parse_http_version(const char *restrict vers,
         return ERROR_SUCCESS;
 }
 
-/* Parse tokens into the struct 'request_line'
+/* Pares the Request-Line string into 're', modifying 'reqLine' pointing to its
+ * content.
  *
  * @except ERROR_BAD_REQUEST
  */
-static enum error parse_request_line_tokens(
-        const struct request_line_tokens *restrict pReqLineToks,
+static enum error parse_request_line_str(char *restrict reqLine,
         struct http_request_line *restrict pRes)
 {
-        if (!is_valid_method(pReqLineToks->method))
+        char *sp1 = strchr(reqLine, ' ');
+        if (sp1 == NULL)
                 return ERROR_BAD_REQUEST;
-        if (!is_valid_uri(pReqLineToks->uri))
+        char *sp2 = strchr(sp1 + 1, ' ');
+        if (sp2 == NULL)
+                return ERROR_BAD_REQUEST;
+        *sp1 = 0;
+        *sp2 = 0;
+
+        if (!is_valid_method(reqLine))
+                return ERROR_BAD_REQUEST;
+        if (!is_valid_uri(sp1 + 1))
                 return ERROR_BAD_REQUEST;
 
-        unsigned long major, minor;
-        enum error err =
-                parse_http_version(pReqLineToks->version, &major, &minor);
+        unsigned int major, minor;
+        enum error err = parse_http_version(sp2 + 1, &major, &minor);
         if (err)
                 return err;
 
-        strcpy(pRes->method, pReqLineToks->method);
-        strcpy(pRes->uri, pReqLineToks->uri);
+        pRes->method = reqLine;
+        pRes->uri = sp1 + 1;
         pRes->http_version.major = major;
         pRes->http_version.minor = minor;
 
@@ -189,26 +166,33 @@ static enum error parse_request_line_tokens(
 enum error parse_http_request_line(const char *restrict fName,
         struct http_request_line *restrict pRes)
 {
-        if (!fName || !pRes)
+        if (fName == NULL || pRes == NULL)
                 return ERROR_INVALID_PARAMETER;
 
         FILE *f = fopen(fName, "rb");
         if (!f)
+                return ERROR_INTERNAL;
+
+        char *lnStr;
+        enum error err = read_request_line(f, &lnStr);
+        fclose(f);
+        if (err)
+                return err;
+
+        err = parse_request_line_str(lnStr, pRes);
+        if (err) {
+                free(lnStr);
+                return err;
+        }
+
+        return ERROR_SUCCESS;
+}
+
+enum error destroy_http_request_line(struct http_request_line *pReqLine):
+{
+        if (pReqLine == NULL)
                 return ERROR_INVALID_PARAMETER;
 
-        char reqLineStr[HTTP_REQUEST_LINE_MAX_LENGTH + 1];
-        enum error err = read_request_line(f, reqLineStr);
-        if (err)
-                return err;
-
-        struct request_line_tokens reqLineToks;
-        err = tokenize_request_line_str(reqLineStr, &reqLineToks);
-        if (err)
-                return err;
-
-        err = parse_request_line_tokens(&reqLineToks, pRes);
-        if (err)
-                return err;
-
+        free(pReqLine->method);
         return ERROR_SUCCESS;
 }

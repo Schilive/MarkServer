@@ -125,8 +125,11 @@ int main(int argc, char **argv)
         printf("========== START ==========\n");
         printf("Method: '%s'\n", httpReqLine.method);
         printf("URI: '%s'\n", httpReqLine.uri);
-        printf("Version: %lu.%lu\n", httpReqLine.major_version, httpReqLine.minor_version);
+        printf("Version: %d.%d\n", httpReqLine.http_version.major,
+               httpReqLine.http_version.minor);
         printf("=========== END ===========\n");
+
+        destroy_http_request_line(&httpReqLine);
 
         return 0;
 
