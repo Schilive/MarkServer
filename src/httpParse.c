@@ -188,7 +188,7 @@ enum error parse_http_request_line(const char *restrict fName,
         return ERROR_SUCCESS;
 }
 
-enum error destroy_http_request_line(struct http_request_line *pReqLine):
+enum error destroy_http_request_line(struct http_request_line *pReqLine)
 {
         if (pReqLine == NULL)
                 return ERROR_INVALID_PARAMETER;
