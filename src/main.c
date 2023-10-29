@@ -157,7 +157,7 @@ int main(int argc, char **argv)
         enum error err = parse_http_request_line(fStr, &httpReqLine);
 
         if (err) {
-                fprintf(stderr, "Could not parse: %d\n", err);
+                fprintf(stderr, "Could not parse: '%s'\n", error_string(err));
                 return 1;
         }
 
