@@ -55,7 +55,7 @@ static enum error parse_http_version(const char *restrict vers,
         if (*next != '\r' || next == pPeriod + 1)
                 return ERROR_BAD_REQUEST;
 
-        if (ulMajor > UINT_MAX || ulMinor > UINT_MAX)
+        if (ulMajor >= UINT_MAX || ulMinor >= UINT_MAX)
                 return ERROR_REQUEST_TOO_LONG;
         pRes->major = (unsigned int)ulMajor;
         pRes->minor = (unsigned int)ulMinor;
