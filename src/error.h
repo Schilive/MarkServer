@@ -13,7 +13,6 @@ enum error {
     ERROR_INVALID_PARAMETER,
     ERROR_REQUEST_TOO_LONG,     /* Something of the HTTP request was considered
                                  * too long. */
-    ERROR_INTERNAL,
     ERROR_BAD_REQUEST           /* Request is malformed by the standard. */
 };
 

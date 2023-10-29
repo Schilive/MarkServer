@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "httpParse.h"
 #include "error.h"
@@ -112,10 +113,48 @@ static int handle_options(int argc, char **argv)
         return 1;
 }
 
+static bool append_character(char **pStr, char ch)
+{
+        size_t strLen = *pStr ? strlen(*pStr) : 0;
+
+        char *newStr = realloc(*pStr, strLen + 2);
+        if (newStr == NULL)
+                return false;
+        newStr[strLen] = ch;
+        newStr[strLen + 1] = 0;
+
+        *pStr = newStr;
+        return true;
+}
+
+static char *get_file(const char *fName)
+{
+        FILE *f = fopen(fName, "rb");
+        char *str = NULL;
+
+        while (!feof(f)) {
+                if (append_character(&str, (char)fgetc(f)))
+                        continue;
+
+                fclose(f);
+                free(str);
+                return NULL;
+        }
+        fclose(f);
+
+        return str;
+}
+
 int main(int argc, char **argv)
 {
+        char *fStr = get_file("req.txt");
+        if (fStr == NULL) {
+                fprintf(stderr, "Nop's\n");
+                return 1;
+        }
+
         struct http_request_line httpReqLine;
-        enum error err = parse_http_request_line("req.txt", &httpReqLine);
+        enum error err = parse_http_request_line(fStr, &httpReqLine);
 
         if (err) {
                 fprintf(stderr, "Could not parse: %d\n", err);
@@ -129,7 +168,7 @@ int main(int argc, char **argv)
                httpReqLine.http_version.minor);
         printf("=========== END ===========\n");
 
-        destroy_http_request_line(&httpReqLine);
+        free(fStr);
 
         return 0;
 
