@@ -113,62 +113,86 @@ static int handle_options(int argc, char **argv)
         return 1;
 }
 
-static bool append_character(char **pStr, char ch)
+enum error append_array(char **pStr, const char *arr, size_t arrLen)
 {
         size_t strLen = *pStr ? strlen(*pStr) : 0;
 
-        char *newStr = realloc(*pStr, strLen + 2);
+        char *newStr = realloc(*pStr, strLen + arrLen + 1);
         if (newStr == NULL)
-                return false;
-        newStr[strLen] = ch;
-        newStr[strLen + 1] = 0;
-
+                return ERROR_MEMORY_ALLOCATION;
         *pStr = newStr;
-        return true;
+
+        memcpy(newStr + strLen, arr, arrLen);
+        newStr[strLen + arrLen] = 0;
+        return ERROR_SUCCESS;
 }
 
-static char *get_file(const char *fName)
+enum error get_file(const char *fName, char **pRes)
 {
+        enum error err;
+
         FILE *f = fopen(fName, "rb");
-        char *str = NULL;
+        if (f == NULL)
+                return ERROR_INVALID_PARAMETER;
 
-        while (!feof(f)) {
-                if (append_character(&str, (char)fgetc(f)))
+        char *fStr = NULL;
+        while (1) {
+                char buf[4096];
+                size_t readBytes = fread(buf, 1, 4096, f);
+                err = append_array(&fStr, buf, readBytes);
+                if (err != ERROR_SUCCESS)
+                        goto error;
+
+                if (readBytes == 4096)
                         continue;
+                if (!ferror(f))
+                        break;
 
-                fclose(f);
-                free(str);
-                return NULL;
+                err = ERROR_BAD_REQUEST;
+                goto error;
         }
         fclose(f);
 
-        return str;
+        *pRes = fStr;
+        return ERROR_SUCCESS;
+
+        error:
+        fclose(f);
+        free(fStr);
+        return err;
 }
 
 int main(int argc, char **argv)
 {
-        char *fStr = get_file("req.txt");
-        if (fStr == NULL) {
-                fprintf(stderr, "Nop's\n");
+        char *fStr;
+        enum error err = get_file("../req.txt", &fStr);
+        if (err != ERROR_SUCCESS) {
+                fprintf(stderr, "Nop's (%s)\n", error_string(err));
                 return 1;
         }
 
-        struct http_request_line httpReqLine;
-        enum error err = parse_http_request_line(fStr, &httpReqLine);
+        struct http_request httpReq;
+        err = parse_http_request(fStr, &httpReq);
 
         if (err) {
+                free(fStr);
                 fprintf(stderr, "Could not parse: '%s'\n", error_string(err));
                 return 1;
         }
 
         printf("========== START ==========\n");
-        printf("Method: '%s'\n", httpReqLine.method);
-        printf("URI: '%s'\n", httpReqLine.uri);
-        printf("Version: %d.%d\n", httpReqLine.http_version.major,
-               httpReqLine.http_version.minor);
+        printf("Method: '%s'\n", httpReq.request_line.method);
+        printf("URI: '%s'\n", httpReq.request_line.uri);
+        printf("Version: %d.%d\n", httpReq.request_line.http_version.major,
+               httpReq.request_line.http_version.minor);
+        printf("===========================\n");
+        for (struct http_header *hdr = httpReq.headers; hdr; hdr = hdr->next) {
+                printf("'%s': '%s'\n", hdr->name, hdr->value);
+        }
         printf("=========== END ===========\n");
 
         free(fStr);
+        destroy_http_request(&httpReq);
 
         return 0;
 

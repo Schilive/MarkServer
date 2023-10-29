@@ -30,4 +30,14 @@ bool is_http_method(const char *arr, size_t arrLen);
  */
 bool is_http_requestURI(const char *arr, size_t arrLen);
 
+/* Checks whether an array starts with 'LWS'.
+ *
+ * @param [in]          arr     The array to be checked.
+ * @param               arrLen  The length of the array.
+ * @param [out, opt]    pLen    The length of the 'LWS', if any.
+ * @return                      Whether the array starts with 'LWS'.
+ */
+bool starts_with_http_LWS(const char *restrict arr, size_t arrLen,
+                     size_t *restrict pLen);
+
 #endif /* MARKSERVER_HTTPCHAR_H */

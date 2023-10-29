@@ -600,3 +600,27 @@ bool is_http_requestURI(const char *arr, size_t arrLen)
 
         return len == arrLen;
 }
+
+bool starts_with_http_LWS(const char *restrict arr, size_t arrLen,
+                          size_t *restrict pLen)
+{
+        /* LWS = [CRLF] 1*(SP | HT) */
+
+        if (arrLen == 0)
+                return false;
+
+        size_t len = 0;
+        if (arrLen < 2) {}
+        else if (arr[0] == '\r' && arr[1] == '\n')
+                len += 2;
+
+        if (arr[len] != ' ' && arr[len] != '\t')
+                return false;
+        len++;
+
+        while (arr[len] == ' ' || arr[len] == '\t')
+                len++;
+
+        *pLen = len;
+        return true;
+}
