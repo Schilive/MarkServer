@@ -58,4 +58,20 @@ bool is_http_fieldContent(const char *restrict arr, size_t arrLen);
  */
 bool is_http_fieldName(const char *restrict arr, size_t arrLen);
 
+/* Returns whether an array is an HTTP 'Status-Code'.
+ *
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'Status-Code'.
+ */
+bool is_http_statusCode(const char *arr, size_t arrLen);
+
+/* Returns whether an array is an HTTP 'Reason-Phrase'.
+ *
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'Reason-Phrase'.
+ */
+bool is_http_reasonPhrase(const char *arr, size_t arrLen);
+
 #endif /* MARKSERVER_HTTPCHAR_H */

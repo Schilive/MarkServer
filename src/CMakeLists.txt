@@ -4,4 +4,8 @@ set(PROJECT_VERSION 0.1)
 
 add_compile_definitions(VERSION="${PROJECT_VERSION}")
 add_executable(markserver main.c httpChar.c httpParse.c
-        error.c)
+        error.c
+        httpResponse.c
+        httpResponse.h
+        util.c
+        util.h)

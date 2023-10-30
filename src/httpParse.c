@@ -11,47 +11,11 @@
 
 #include <string.h>
 #include <stdbool.h>
-#include "httpChar.h"
 #include <stdlib.h>
 #include <limits.h>
 #include <errno.h>
-
-/* Reallocates string to append character.
- *
- * @except ERROR_MEMORY_ALLOCATION
- */
-static enum error append_character(char **pStr, char ch)
-{
-        size_t strLen = *pStr ? strlen(*pStr) : 0;
-
-        char *newStr = realloc(*pStr, strLen + 2);
-        if (newStr == NULL)
-                return ERROR_MEMORY_ALLOCATION;
-        *pStr = newStr;
-
-        newStr[strLen] = ch;
-        newStr[strLen + 1] = 0;
-
-        return ERROR_SUCCESS;
-}
-
-/* Reallocates string to append array.
- *
- * @except ERROR_MEMORY_ALLOCATION
- */
-static enum error append_array(char **pStr, const char *arr, size_t arrLen)
-{
-        size_t strLen = *pStr ? strlen(*pStr) : 0;
-
-        char *newStr = realloc(*pStr, strLen + arrLen + 1);
-        if (newStr == NULL)
-                return ERROR_MEMORY_ALLOCATION;
-        *pStr = newStr;
-
-        memcpy(newStr + strLen, arr, arrLen);
-        newStr[strLen + arrLen] = 0;
-        return ERROR_SUCCESS;
-}
+#include "httpChar.h"
+#include "util.h"
 
 /* Returns whether the method format is correct. */
 static bool is_valid_method(const char *str)

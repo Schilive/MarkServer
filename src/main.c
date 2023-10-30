@@ -15,6 +15,7 @@
 
 #include "httpParse.h"
 #include "error.h"
+#include "httpResponse.h"
 
 #ifdef __linux__
 #define TARGET_SYSTEM "Linux"
@@ -113,7 +114,7 @@ static int handle_options(int argc, char **argv)
         return 1;
 }
 
-enum error append_array(char **pStr, const char *arr, size_t arrLen)
+static enum error append_array(char **pStr, const char *arr, size_t arrLen)
 {
         size_t strLen = *pStr ? strlen(*pStr) : 0;
 
@@ -127,7 +128,7 @@ enum error append_array(char **pStr, const char *arr, size_t arrLen)
         return ERROR_SUCCESS;
 }
 
-enum error get_file(const char *fName, char **pRes)
+static enum error get_file(const char *fName, char **pRes)
 {
         enum error err;
 
@@ -164,35 +165,20 @@ enum error get_file(const char *fName, char **pRes)
 
 int main(int argc, char **argv)
 {
-        char *fStr;
-        enum error err = get_file("../req.txt", &fStr);
+        char *resp;
+        struct http_version httpV = {1, 0};
+        enum error err = create_http_response_raw(&httpV, "200", "OK", NULL,
+                                                  NULL,
+                                                  &resp);
         if (err != ERROR_SUCCESS) {
-                fprintf(stderr, "Nop's (%s)\n", error_string(err));
+                fprintf(stderr, "Could not create response: '%s'\n",
+                        error_string(err));
                 return 1;
         }
 
-        struct http_request httpReq;
-        err = parse_http_request(fStr, &httpReq);
-
-        if (err) {
-                free(fStr);
-                fprintf(stderr, "Could not parse: '%s'\n", error_string(err));
-                return 1;
-        }
-
-        printf("========== START ==========\n");
-        printf("Method: '%s'\n", httpReq.request_line.method);
-        printf("URI: '%s'\n", httpReq.request_line.uri);
-        printf("Version: %d.%d\n", httpReq.request_line.http_version.major,
-               httpReq.request_line.http_version.minor);
-        printf("===========================\n");
-        for (struct http_header *hdr = httpReq.headers; hdr; hdr = hdr->next) {
-                printf("'%s': '%s'\n", hdr->name, hdr->value);
-        }
-        printf("=========== END ===========\n");
-
-        free(fStr);
-        destroy_http_request(&httpReq);
+        printf("========= START =========\n");
+        printf("%s", resp);
+        printf("\n========== END ==========");
 
         return 0;
 

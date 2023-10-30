@@ -18,7 +18,8 @@ enum error {
     ERROR_REQUEST_TOO_LONG,     /* Something of the HTTP request was considered
                                  * too long. */
     ERROR_BAD_REQUEST,          /* Request is malformed by the standard. */
-    ERROR_MEMORY_ALLOCATION
+    ERROR_MEMORY_ALLOCATION,
+    ERROR_INTERNAL
 };
 
 /* Returns a human-readable string describing the error. */

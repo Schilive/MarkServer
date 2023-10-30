@@ -16,6 +16,7 @@ const static char *errorStr_invalidParameter = "Invalid parameter";
 const static char *errorStr_requestTooLong = "Request too long";
 const static char *errorStr_badRequest = "Bad request";
 const static char *errorStr_memoryAllocation = "Memory allocation";
+const static char *errorStr_internal = "Internal";
 
 const char *error_string(enum error err)
 {
@@ -32,6 +33,8 @@ const char *error_string(enum error err)
                         return errorStr_badRequest;
                 case ERROR_MEMORY_ALLOCATION:
                         return errorStr_memoryAllocation;
+                case ERROR_INTERNAL:
+                        return errorStr_internal;
                 default:
                         return errorStr_unknown;
         }

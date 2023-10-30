@@ -734,3 +734,45 @@ bool is_http_fieldName(const char *restrict arr, size_t arrLen)
                 return false;
         return len == arrLen;
 }
+
+bool is_http_statusCode(const char *arr, size_t arrLen)
+{
+        /* Status-Code = 3DIGIT */
+
+        if (arrLen != 3)
+                return false;
+        for (size_t i = 0; i < 3; i++) {
+                if (!is_DIGIT(arr[i]))
+                        return false;
+        }
+
+        return true;
+}
+
+bool is_http_reasonPhrase(const char *arr, size_t arrLen)
+{
+        /* Reason-Phrase = *<TEXT, excluding CR, LF>
+         *
+         * Since
+         * 1) TEXT = <any OCTET except CTLs but including LWS>,
+         * 2) LWS = [CRLF] 1*(SP | HT),
+         * Then,
+         * Reason-pHrase = *<any OCTECT except CTLS, but including SP and HT>
+         * */
+
+        size_t offset = 0;
+        while (1) {
+                if (offset == arrLen)
+                        break;
+
+                if (arr[offset] == '\r' || arr[offset] == '\t') {
+                        offset++;
+                        continue;
+                } if (is_CTL(arr[offset]))
+                        return false;
+
+                offset++;
+        }
+
+        return true;
+}
