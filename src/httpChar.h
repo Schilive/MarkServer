@@ -34,10 +34,28 @@ bool is_http_requestURI(const char *arr, size_t arrLen);
  *
  * @param [in]          arr     The array to be checked.
  * @param               arrLen  The length of the array.
- * @param [out, opt]    pLen    The length of the 'LWS', if any.
+ * @param [out]         pLen    The length of the 'LWS', if any.
  * @return                      Whether the array starts with 'LWS'.
  */
 bool starts_with_http_LWS(const char *restrict arr, size_t arrLen,
                      size_t *restrict pLen);
+
+/* Checks whether an array is an HTTP 'field-content', that is, the content
+ * of a header value.
+ *
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'field-content'.
+ */
+bool is_http_fieldContent(const char *restrict arr, size_t arrLen);
+
+/* Checks whether an array is an HTTP 'field-name', that is, the name of a
+ * header.
+ *
+ * @param [in]  arr     The array to be checked.
+ * @param       arrLen  The length of the array.
+ * @return              Whether the array is a 'field-name'.
+ */
+bool is_http_fieldName(const char *restrict arr, size_t arrLen);
 
 #endif /* MARKSERVER_HTTPCHAR_H */

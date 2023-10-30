@@ -35,6 +35,24 @@ static enum error append_character(char **pStr, char ch)
         return ERROR_SUCCESS;
 }
 
+/* Reallocates string to append array.
+ *
+ * @except ERROR_MEMORY_ALLOCATION
+ */
+static enum error append_array(char **pStr, const char *arr, size_t arrLen)
+{
+        size_t strLen = *pStr ? strlen(*pStr) : 0;
+
+        char *newStr = realloc(*pStr, strLen + arrLen + 1);
+        if (newStr == NULL)
+                return ERROR_MEMORY_ALLOCATION;
+        *pStr = newStr;
+
+        memcpy(newStr + strLen, arr, arrLen);
+        newStr[strLen + arrLen] = 0;
+        return ERROR_SUCCESS;
+}
+
 /* Returns whether the method format is correct. */
 static bool is_valid_method(const char *str)
 {
@@ -45,6 +63,13 @@ static bool is_valid_method(const char *str)
 static bool is_valid_uri(const char *str)
 {
         return is_http_requestURI(str, strlen(str));
+}
+
+static bool is_valid_header(const char *restrict name,
+                            const char *restrict val)
+{
+        return is_http_fieldName(name, strlen(name)) &&
+               is_http_fieldContent(val, strlen(val));
 }
 
 /* Parses the HTTP version string, verifying that its format is correct.
@@ -150,7 +175,9 @@ static enum error parse_header_value(char *restrict str, char **restrict pRes,
                 }
 
                 size_t LWSLen;
-                if (starts_with_http_LWS(str + offset, strlen(str), &LWSLen)) {
+                if (starts_with_http_LWS(str + offset,
+                                         strlen(str + offset),
+                                         &LWSLen)) {
                         offset += LWSLen;
                         continue;
                 } if (str[offset] == '\r' && str[offset + 1] == '\n') {
@@ -204,6 +231,8 @@ static enum error parse_header(char *restrict str,
         enum error err = parse_header_value(pColon + 1, &val, &next);
         if (err != ERROR_SUCCESS)
                 return err;
+
+
 
         struct http_header *pHdr = malloc(sizeof(struct http_header));
         if (pHdr == NULL) {

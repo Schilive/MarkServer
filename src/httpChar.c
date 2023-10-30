@@ -12,6 +12,7 @@
  * (Backus-Naur Normal Form) notation. */
 
 #include "httpChar.h"
+#include <string.h>
 
 static bool is_CHAR(char ch)
 {
@@ -573,6 +574,70 @@ static bool starts_with_token(const char *restrict arr, size_t arrLen,
         return true;
 }
 
+/* Checks whether an array starts with 'qdtext'.
+ *
+ * @param [in]          arr     The array to be checked.
+ * @param               arrLen  The length of the array.
+ * @param [out, opt]    pLen    The length of the 'qdtext', if any.
+ * @return                      Whether the array starts with 'qdtext'.
+ */
+static bool starts_with_qdtext(const char *restrict arr, size_t arrLen,
+                               size_t *restrict pLen)
+{
+        /* qdtext = <any CHAR except <"> and CTLS, but including LWS> */
+
+        size_t len = 0;
+        while (1) {
+                if (len == arrLen)
+                        break;
+                if (arr[len] == '\"')
+                        break;
+
+                size_t LWSLen;
+                if (starts_with_http_LWS(arr + len, arrLen - len, &LWSLen)) {
+                        len += LWSLen;
+                        continue;
+                } else if (is_CTL(arr[len])) {
+                        break;
+                }
+        }
+
+        if (len == 0)
+                return false;
+
+        *pLen = len;
+        return true;
+}
+
+/* Checks whether an array starts with 'TEXT'.
+ *
+ * @param [in]          arr     The array to be checked.
+ * @param               arrLen  The length of the array.
+ * @param [out, opt]    pLen    The length of the 'TEXT', if any.
+ * @return                      Whether the array starts with 'TEXT'.
+ */
+static bool starts_with_TEXT(const char *restrict arr, size_t arrLen,
+                             size_t *restrict pLen)
+{
+        /* TEXT = <any OCTET except CTLs, but including LWS> */
+
+        size_t len = 0;
+        while (1) {
+                size_t LWSLen;
+                if (starts_with_http_LWS(arr + len, arrLen - len, &LWSLen)) {
+                        len += LWSLen;
+                        continue;
+                } else if (is_CTL(arr[len])) {
+                        break;
+                }
+
+                len++;
+        }
+
+        *pLen = len;
+        return true;
+}
+
 bool is_http_method(const char *arr, size_t arrLen)
 {
         /* Method = token */
@@ -623,4 +688,49 @@ bool starts_with_http_LWS(const char *restrict arr, size_t arrLen,
 
         *pLen = len;
         return true;
+}
+
+bool is_http_fieldContent(const char *restrict arr, size_t arrLen)
+{
+        /* field-content = <the OCTETs making up the field-value
+                        and consisting of either *TEXT or combinations
+                        of token, tspecials, and quoted-string>
+
+         This implies that if field-content is not *TEXT, then it is "tokens",
+         "tspecials", or "qdtext", since <"> is "tespecial".
+        */
+
+        size_t len;
+        if (!starts_with_TEXT(arr, arrLen, &len)) {}
+        else if (len == arrLen)
+                return true;
+
+        size_t offset = 0;
+        while (1) {
+                if (offset == arrLen)
+                        return true;
+
+                if (starts_with_token(arr + offset, arrLen - offset, &len)) {
+                        offset += len;
+                        continue;
+                } if (is_tspecials(arr[offset])) {
+                        offset++;
+                        continue;
+                } if (starts_with_qdtext(arr + offset, arrLen - offset, &len)) {
+                        offset += len;
+                        continue;
+                }
+
+                return false;
+        }
+}
+
+bool is_http_fieldName(const char *restrict arr, size_t arrLen)
+{
+        /* field-name = token */
+
+        size_t len;
+        if (!starts_with_token(arr, arrLen, &len))
+                return false;
+        return len == arrLen;
 }
